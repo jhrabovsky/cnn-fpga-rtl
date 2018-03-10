@@ -2,8 +2,6 @@ library IEEE;
 	use IEEE.STD_LOGIC_1164.ALL;
 	use IEEE.NUMERIC_STD.ALL;
 
-use work.misc_pkg.ALL;
-
 entity adder_tree is
 	Generic (
 		NO_INPUTS : natural := 6;
@@ -21,6 +19,20 @@ end adder_tree;
 
 architecture rtl of adder_tree is
 
+function log2c (N : integer) return integer is
+    variable m, p : integer;
+    begin
+        m := 0;
+        p := 1;
+        
+        while p < N loop
+            m := m + 1;
+            p := p * 2;
+        end loop;
+        
+        return m;
+    end log2c;
+    
 constant NO_STAGES : natural := log2c(NO_INPUTS);
 
 type matrix is array(NO_STAGES downto 0) of std_logic_vector(DATA_WIDTH * (2**NO_STAGES) - 1 downto 0);

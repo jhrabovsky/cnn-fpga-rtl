@@ -55,7 +55,7 @@ begin
 
 	output_neurons_gen: for J in 0 to NO_OUTPUTS - 1 generate
 		mult_gen : for I in 0 to NO_INPUTS - 1 generate
-			data_from_mult_to_adders(J * NO_INPUTS * MULT_RES_WIDTH + (I+1) * MULT_RES_WIDTH - 1 downto J * NO_INPUTS * MULT_RES_WIDTH + I * MULT_RES_WIDTH) <= std_logic_vector(
+			data_from_mults_to_adders(J * NO_INPUTS * MULT_RES_WIDTH + (I+1) * MULT_RES_WIDTH - 1 downto J * NO_INPUTS * MULT_RES_WIDTH + I * MULT_RES_WIDTH) <= std_logic_vector(
 			  signed(din((I+1) * DATA_WIDTH - 1 downto I * DATA_WIDTH)) * signed(w(J * NO_INPUTS * COEF_WIDTH + (I+1) * COEF_WIDTH - 1 downto J * NO_INPUTS * COEF_WIDTH + I * COEF_WIDTH))
 			);
 		end generate;
@@ -66,14 +66,14 @@ begin
 				DATA_WIDTH => MULT_RES_WIDTH
 			)
 			port map (
-				din => data_from_mult_to_adders((J+1) * NO_INPUTS * MULT_RES_WIDTH - 1 downto J * NO_INPUTS * MULT_RES_WIDTH),
+				din => data_from_mults_to_adders((J+1) * NO_INPUTS * MULT_RES_WIDTH - 1 downto J * NO_INPUTS * MULT_RES_WIDTH),
 				dout => res_from_adders((J+1) * MULT_RES_WIDTH - 1 downto J * MULT_RES_WIDTH),
 				clk => clk,
 				ce => ce,
 				rst => rst
 			);
 
-		dout((J+1) * RESULT_WIDTH - 1 downto J * RESULT_WIDTH) <= res_from_adders((J+1)* MULT_RES_WIDTH - 1 downto J * MULT_RES_WIDTH - RESULT_WIDTH);
+		dout((J+1) * RESULT_WIDTH - 1 downto J * RESULT_WIDTH) <= res_from_adders((J+1) * MULT_RES_WIDTH - 1 downto (J+1) * MULT_RES_WIDTH - RESULT_WIDTH);
 	end generate;
 
 end RTL;

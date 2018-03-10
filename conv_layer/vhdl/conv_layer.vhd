@@ -4,8 +4,8 @@ library IEEE;
 
 entity conv_layer is
 	Generic (
-		NO_INPUT_MAPS : natural := 1;
-		NO_OUTPUT_MAPS : natural := 16;		
+		NO_INPUT_MAPS : natural := 4;
+		NO_OUTPUT_MAPS : natural := 1;		
 		INPUT_ROW_SIZE : natural := 9;
 		KERNEL_SIZE : natural := 3;
 		DATA_INTEGER_WIDTH : natural := 8; -- zahrna aj znamienkovy bit
@@ -190,7 +190,7 @@ begin
                 if (rst = '1') then
                     adder_trees_delay <= (others => '0');
                 else
-                    adder_trees_delay <= adder_trees_delay(ADDER_TREE_DELAY - 2 downto 1) & valid_from_fsm;
+                    adder_trees_delay <= adder_trees_delay(ADDER_TREE_DELAY - 2 downto 0) & valid_from_fsm;
                 end if;
             end if;
         end process result_valid_delay;

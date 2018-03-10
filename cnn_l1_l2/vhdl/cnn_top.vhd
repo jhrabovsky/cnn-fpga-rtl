@@ -1,7 +1,6 @@
 library IEEE;
     use IEEE.STD_LOGIC_1164.ALL;
 use STD.TEXTIO.ALL;
-use work.misc_pkg.all;
 
 entity cnn_top is
     Port ( 
@@ -13,6 +12,20 @@ entity cnn_top is
 end cnn_top;
 
 architecture RTL of cnn_top is
+
+function log2c (N : integer) return integer is
+    variable m, p : integer;
+    begin
+        m := 0;
+        p := 1;
+        
+        while p < N loop
+            m := m + 1;
+            p := p * 2;
+        end loop;
+        
+        return m;
+    end log2c;
 
 --------------------------
 --      COMPONENTS      --
@@ -186,12 +199,12 @@ begin
     DOUT <= res_from_2_pos;
     DOUT_VLD <= data_v_to_out;
 
-    k1 <= Init_L1_Kernel("misc/l1_kernels.mif");
+    k1 <= Init_L1_Kernel("../misc/l1_kernels.mif");
     gen_l1_kernel_map : for I in 0 to L1_NO_INPUT_MAPS * L1_NO_OUTPUT_MAPS - 1 generate
         w1((I+1) * (L1_KERNEL_SIZE**2) * L1_COEF_WIDTH - 1 downto I * (L1_KERNEL_SIZE**2) * L1_COEF_WIDTH) <= k1(I);
     end generate gen_l1_kernel_map;
         
-    k2 <= Init_L2_Kernel("misc/l2_kernels.mif");
+    k2 <= Init_L2_Kernel("../misc/l2_kernels.mif");
     gen_l2_kernel_map : for I in 0 to L2_NO_INPUT_MAPS * L2_NO_OUTPUT_MAPS - 1 generate
         w2((I+1) * (L2_KERNEL_SIZE**2) * L2_COEF_WIDTH - 1 downto I * (L2_KERNEL_SIZE**2) * L2_COEF_WIDTH) <= k2(I);
     end generate gen_l2_kernel_map;    

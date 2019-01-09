@@ -25,7 +25,7 @@ component cnn_top is
     );
 end component;
 
-constant NO_OUTPUTS : natural := NO_INPUT_IMAGES * L4_NO_OUTPUTS;
+constant NO_OUTPUTS : natural := NO_INPUT_IMAGES;
 
 constant T : time := 10ns;
 signal clk, rst : std_logic;

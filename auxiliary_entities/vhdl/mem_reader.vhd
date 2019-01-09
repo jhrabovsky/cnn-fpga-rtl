@@ -8,7 +8,7 @@ entity mem_reader is
 		FILENAME : string;
 		DATA_LEN : natural := 8;
 		ADDR_LEN : natural := 4;
-		NO_ITEMS : natural := 1 
+		NO_ITEMS : natural := 1
 	);
 	port (
 		clk : in std_logic;
@@ -31,7 +31,7 @@ begin
         p := p * 2;
     end loop;
     return m;
-end log2c; 
+end log2c;
 
 component rom is
     Generic (
@@ -48,7 +48,7 @@ component rom is
     );
 end component;
 
-component counter_down is
+component counter_up is
     Generic (
         THRESHOLD : natural;
         THRESHOLD_WIDTH : natural
@@ -68,7 +68,7 @@ signal mem_addr : std_logic_vector(ADDR_LEN - 1 downto 0);
 signal count_tmp : std_logic_vector(THRESHOLD_WIDTH - 1 downto 0);
 
 signal data_reg : std_logic_vector(DATA_LEN - 1 downto 0);
-signal data_next : std_logic_vector(DATA_LEN - 1 downto 0); 
+signal data_next : std_logic_vector(DATA_LEN - 1 downto 0);
 
 begin
 
@@ -85,7 +85,7 @@ begin
             data => mem_data
         );
 
-    addr_gen_inst : counter_down
+    addr_gen_inst : counter_up
         generic map (
             THRESHOLD => NO_ITEMS - 1,
             THRESHOLD_WIDTH => THRESHOLD_WIDTH
@@ -96,7 +96,7 @@ begin
             EN => en,
             COUNT => count_tmp,
             TS => ts
-        );  
+        );
 
 --    regs : process (clk) is
 --    begin
@@ -113,7 +113,7 @@ begin
 --    data <= data_reg;
 
     data <= mem_data;
-    
+
     mem_addr <= count_tmp(ADDR_LEN - 1 downto 0);
-  
+
 end rtl;

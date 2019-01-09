@@ -9,7 +9,9 @@ entity cnn_top is
         CLK: in std_logic;
         RST: in std_logic;
         DOUT_VLD: out std_logic;
-        DOUT: out std_logic_vector(L4_NO_OUTPUTS * L4_RESULT_WIDTH - 1 downto 0)
+--        DOUT: out std_logic_vector(L4_NO_OUTPUTS * L4_RESULT_WIDTH - 1 downto 0)
+--        DOUT: out std_logic_vector(L2_NO_OUTPUT_MAPS * L2_RESULT_WIDTH - 1 downto 0)
+        DOUT: out std_logic_vector(L1_NO_OUTPUT_MAPS * L1_RESULT_WIDTH - 1 downto 0)
     );
 end cnn_top;
 
@@ -40,7 +42,7 @@ signal data_v_to_3 : std_logic;
 signal data_v_to_4 : std_logic;
 signal data_v_to_out : std_logic;
 
-signal shreg_fc_valid : std_logic_vector(...);
+signal shreg_fc_valid : std_logic_vector(5 downto 0);
 
 signal res_from_1 : std_logic_vector(L1_NO_OUTPUT_MAPS * L1_RESULT_WIDTH - 1 downto 0);
 signal res_from_1_pos : std_logic_vector(L1_NO_OUTPUT_MAPS * L1_RESULT_WIDTH - 1 downto 0);
@@ -71,25 +73,25 @@ signal mem_ts : std_logic;
 
 begin
 
-    k1 <= Init_L1_Kernel("../misc/kernels/l1_conv_kernels.mif");
+    k1 <= Init_L1_Kernel("/home/hrabovsky/vivado_workspace/cnn/ref_cnn/misc/kernels/l1_conv_kernels.mif");
     gen_l1_kernel_map : for I in 0 to L1_NO_INPUT_MAPS * L1_NO_OUTPUT_MAPS - 1 generate
         w1((I+1) * (L1_KERNEL_SIZE**2) * L1_COEF_WIDTH - 1 downto I * (L1_KERNEL_SIZE**2) * L1_COEF_WIDTH) <= k1(I);
     end generate gen_l1_kernel_map;
 
-    k2 <= Init_L2_Kernel("../misc/kernels/l2_conv_kernels.mif");
-    gen_l2_kernel_map : for I in 0 to L2_NO_INPUT_MAPS * L2_NO_OUTPUT_MAPS - 1 generate
-        w2((I+1) * (L2_KERNEL_SIZE**2) * L2_COEF_WIDTH - 1 downto I * (L2_KERNEL_SIZE**2) * L2_COEF_WIDTH) <= k2(I);
-    end generate gen_l2_kernel_map;
+--    k2 <= Init_L2_Kernel("/home/hrabovsky/vivado_workspace/cnn/ref_cnn/misc/kernels/l2_conv_kernels.mif");
+--    gen_l2_kernel_map : for I in 0 to L2_NO_INPUT_MAPS * L2_NO_OUTPUT_MAPS - 1 generate
+--        w2((I+1) * (L2_KERNEL_SIZE**2) * L2_COEF_WIDTH - 1 downto I * (L2_KERNEL_SIZE**2) * L2_COEF_WIDTH) <= k2(I);
+--    end generate gen_l2_kernel_map;
 
-    k3 <= Init_L3_Kernel("../misc/kernels/l3_conv_kernels.mif");
-    gen_l3_kernel_map : for I in 0 to L3_NO_INPUT_MAPS * L3_NO_OUTPUT_MAPS - 1 generate
-        w3((I+1) * (L3_KERNEL_SIZE**2) * L3_COEF_WIDTH - 1 downto I * (L3_KERNEL_SIZE**2) * L3_COEF_WIDTH) <= k3(I);
-    end generate gen_l3_kernel_map;
+--    k3 <= Init_L3_Kernel("/home/hrabovsky/vivado_workspace/cnn/ref_cnn/misc/kernels/l3_conv_kernels.mif");
+--    gen_l3_kernel_map : for I in 0 to L3_NO_INPUT_MAPS * L3_NO_OUTPUT_MAPS - 1 generate
+--        w3((I+1) * (L3_KERNEL_SIZE**2) * L3_COEF_WIDTH - 1 downto I * (L3_KERNEL_SIZE**2) * L3_COEF_WIDTH) <= k3(I);
+--    end generate gen_l3_kernel_map;
 
-    k4 <= Init_L4_Kernel("../misc/kernels/l4_fc_kernels.mif");
-    gen_l4_kernel_map : for I in 0 to L4_NO_OUTPUTS - 1 generate
-        w4((I+1) * L4_NO_INPUTS * L4_COEF_WIDTH - 1 downto I * L4_NO_INPUTS * L4_COEF_WIDTH) <= k4(I);
-    end generate gen_l4_kernel_map;
+--    k4 <= Init_L4_Kernel("/home/hrabovsky/vivado_workspace/cnn/ref_cnn/misc/kernels/l4_fc_kernels.mif");
+--    gen_l4_kernel_map : for I in 0 to L4_NO_OUTPUTS - 1 generate
+--        w4((I+1) * L4_NO_INPUTS * L4_COEF_WIDTH - 1 downto I * L4_NO_INPUTS * L4_COEF_WIDTH) <= k4(I);
+--    end generate gen_l4_kernel_map;
 
     --------------------------------
     --      INPUT IMAGE MEMORY    --
@@ -97,14 +99,14 @@ begin
 
     image_mem_reader : mem_reader
         generic map (
-            FILENAME => "misc/images/in.mif",
+            FILENAME => "/home/hrabovsky/vivado_workspace/cnn/ref_cnn/misc/images/in.mif",
             DATA_LEN => ROM_DATA_LEN,
             ADDR_LEN => ROM_ADDR_LEN,
             NO_ITEMS => NO_INPUTS
         )
         port map (
             clk => CLK,
-            rst =>RST,
+            rst => RST,
             en => mem_ce,
             data => mem_data,
             ts => mem_ts
@@ -142,141 +144,142 @@ begin
     --      L1 ACTIVATION      --
     -----------------------------
 
-    activation_function_1: for I in 0 to L1_NO_OUTPUT_MAPS - 1 generate
-      relu_inst : relu
-            generic map (
-                WIDTH => L1_RESULT_WIDTH
-            )
-            port map (
-                din => res_from_1((I+1) * L1_RESULT_WIDTH - 1 downto I * L1_RESULT_WIDTH),
-                dout => res_from_1_pos((I+1) * L1_RESULT_WIDTH - 1 downto I * L1_RESULT_WIDTH)
-            );
-    end generate activation_function_1;
+--    activation_function_1: for I in 0 to L1_NO_OUTPUT_MAPS - 1 generate
+--      relu_inst : relu
+--            generic map (
+--                WIDTH => L1_RESULT_WIDTH
+--            )
+--            port map (
+--                din => res_from_1((I+1) * L1_RESULT_WIDTH - 1 downto I * L1_RESULT_WIDTH),
+--                dout => res_from_1_pos((I+1) * L1_RESULT_WIDTH - 1 downto I * L1_RESULT_WIDTH)
+--            );
+--    end generate activation_function_1;
 
     -----------------------------
     --      L2 CONV LAYER      --
     -----------------------------
 
-    l2_inst : conv_layer
-        generic map (
-            NO_INPUT_MAPS => L2_NO_INPUT_MAPS,
-            NO_OUTPUT_MAPS => L2_NO_OUTPUT_MAPS,
-            INPUT_ROW_SIZE => L2_MAP_ROW_LEN,
-            KERNEL_SIZE => L2_KERNEL_SIZE,
-            DATA_INTEGER_WIDTH => L2_DATA_INTEGER_LEN,
-            DATA_FRACTION_WIDTH => L2_DATA_FRACTION_LEN,
-            COEF_INTEGER_WIDTH => L2_COEF_INTEGER_LEN,
-            COEF_FRACTION_WIDTH => L2_COEF_FRACTION_LEN,
-            RESULT_INTEGER_WIDTH => L2_RESULT_INTEGER_LEN,
-            RESULT_FRACTION_WIDTH => L2_RESULT_FRACTION_LEN
-        )
-        port map (
-            din => res_from_1_pos,
-            w => w2,
-            dout => res_from_2,
-            clk => CLK,
-            rst => RST,
-            coef_load => coef_load,
-            valid_in => data_v_to_2,
-            valid_out => data_v_to_3
-        );
+--    l2_inst : conv_layer
+--        generic map (
+--            NO_INPUT_MAPS => L2_NO_INPUT_MAPS,
+--            NO_OUTPUT_MAPS => L2_NO_OUTPUT_MAPS,
+--            INPUT_ROW_SIZE => L2_MAP_ROW_LEN,
+--            KERNEL_SIZE => L2_KERNEL_SIZE,
+--            DATA_INTEGER_WIDTH => L2_DATA_INTEGER_LEN,
+--            DATA_FRACTION_WIDTH => L2_DATA_FRACTION_LEN,
+--            COEF_INTEGER_WIDTH => L2_COEF_INTEGER_LEN,
+--            COEF_FRACTION_WIDTH => L2_COEF_FRACTION_LEN,
+--            RESULT_INTEGER_WIDTH => L2_RESULT_INTEGER_LEN,
+--            RESULT_FRACTION_WIDTH => L2_RESULT_FRACTION_LEN
+--        )
+--        port map (
+--            din => res_from_1_pos,
+--            w => w2,
+--            dout => res_from_2,
+--            clk => CLK,
+--            rst => RST,
+--            coef_load => coef_load,
+--            valid_in => data_v_to_2,
+--            valid_out => data_v_to_3
+--        );
+
 
     -----------------------------
     --      L2 ACTIVATION      --
     -----------------------------
 
-    activation_function_2: for I in 0 to L2_NO_OUTPUT_MAPS - 1 generate
-      relu_inst : relu
-            generic map (
-                WIDTH => L2_RESULT_WIDTH
-            )
-            port map (
-                din => res_from_2((I+1) * L2_RESULT_WIDTH - 1 downto I * L2_RESULT_WIDTH),
-                dout => res_from_2_pos((I+1) * L2_RESULT_WIDTH - 1 downto I * L2_RESULT_WIDTH)
-            );
-    end generate activation_function_2;
+--    activation_function_2: for I in 0 to L2_NO_OUTPUT_MAPS - 1 generate
+--      relu_inst : relu
+--            generic map (
+--                WIDTH => L2_RESULT_WIDTH
+--            )
+--            port map (
+--                din => res_from_2((I+1) * L2_RESULT_WIDTH - 1 downto I * L2_RESULT_WIDTH),
+--                dout => res_from_2_pos((I+1) * L2_RESULT_WIDTH - 1 downto I * L2_RESULT_WIDTH)
+--            );
+--    end generate activation_function_2;
 
     -----------------------------
     --      L3 CONV LAYER      --
     -----------------------------
 
-    l3_inst : conv_layer
-        generic map (
-            NO_INPUT_MAPS => L3_NO_INPUT_MAPS,
-            NO_OUTPUT_MAPS => L3_NO_OUTPUT_MAPS,
-            INPUT_ROW_SIZE => L3_MAP_ROW_LEN,
-            KERNEL_SIZE => L3_KERNEL_SIZE,
-            DATA_INTEGER_WIDTH => L3_DATA_INTEGER_LEN,
-            DATA_FRACTION_WIDTH => L3_DATA_FRACTION_LEN,
-            COEF_INTEGER_WIDTH => L3_COEF_INTEGER_LEN,
-            COEF_FRACTION_WIDTH => L3_COEF_FRACTION_LEN,
-            RESULT_INTEGER_WIDTH => L3_RESULT_INTEGER_LEN,
-            RESULT_FRACTION_WIDTH => L3_RESULT_FRACTION_LEN
-        )
-        port map (
-            din => res_from_2_pos,
-            w => w3,
-            dout => res_from_3,
-            clk => CLK,
-            rst => RST,
-            coef_load => coef_load,
-            valid_in => data_v_to_3,
-            valid_out => data_v_to_4
-        );
+--    l3_inst : conv_layer
+--        generic map (
+--            NO_INPUT_MAPS => L3_NO_INPUT_MAPS,
+--            NO_OUTPUT_MAPS => L3_NO_OUTPUT_MAPS,
+--            INPUT_ROW_SIZE => L3_MAP_ROW_LEN,
+--            KERNEL_SIZE => L3_KERNEL_SIZE,
+--            DATA_INTEGER_WIDTH => L3_DATA_INTEGER_LEN,
+--            DATA_FRACTION_WIDTH => L3_DATA_FRACTION_LEN,
+--            COEF_INTEGER_WIDTH => L3_COEF_INTEGER_LEN,
+--            COEF_FRACTION_WIDTH => L3_COEF_FRACTION_LEN,
+--            RESULT_INTEGER_WIDTH => L3_RESULT_INTEGER_LEN,
+--            RESULT_FRACTION_WIDTH => L3_RESULT_FRACTION_LEN
+--        )
+--        port map (
+--            din => res_from_2_pos,
+--            w => w3,
+--            dout => res_from_3,
+--            clk => CLK,
+--            rst => RST,
+--            coef_load => coef_load,
+--            valid_in => data_v_to_3,
+--            valid_out => data_v_to_4
+--        );
 
     -----------------------------
     --      L3 ACTIVATION      --
     -----------------------------
 
-    activation_function_3: for I in 0 to L3_NO_OUTPUT_MAPS - 1 generate
-      relu_inst : relu
-            generic map (
-                WIDTH => L3_RESULT_WIDTH
-            )
-            port map (
-                din => res_from_3((I+1) * L3_RESULT_WIDTH - 1 downto I * L3_RESULT_WIDTH),
-                dout => res_from_3_pos((I+1) * L3_RESULT_WIDTH - 1 downto I * L3_RESULT_WIDTH)
-            );
-    end generate activation_function_3;
+--    activation_function_3: for I in 0 to L3_NO_OUTPUT_MAPS - 1 generate
+--      relu_inst : relu
+--            generic map (
+--                WIDTH => L3_RESULT_WIDTH
+--            )
+--            port map (
+--                din => res_from_3((I+1) * L3_RESULT_WIDTH - 1 downto I * L3_RESULT_WIDTH),
+--                dout => res_from_3_pos((I+1) * L3_RESULT_WIDTH - 1 downto I * L3_RESULT_WIDTH)
+--            );
+--    end generate activation_function_3;
 
     -----------------------------
     --      L4 FC LAYER        --
     -----------------------------
 
-    l4_inst : fc_layer
-    generic map (
-        NO_INPUTS => L4_NO_INPUTS,
-        NO_OUTPUTS => L4_NO_OUTPUTS,
-        DATA_INTEGER_WIDTH => L4_DATA_INTEGER_WIDTH,
-        DATA_FRACTION_WIDTH => L4_DATA_FRACTION_WIDTH,
-        COEF_INTEGER_WIDTH => L4_COEF_INTEGER_WIDTH,
-        COEF_FRACTION_WIDTH => L4_COEF_FRACTION_WIDTH,
-        RESULT_INTEGER_WIDTH => L4_RESULT_INTEGER_WIDTH,
-        RESULT_FRACTION_WIDTH => L4_RESULT_FRACTION_WIDTH
-    )
-    port map (
-        din => res_from_3_pos,
-        w => w4,
-        dout => res_from_4,
-        clk => CLK,
-        rst => RST,
-        ce => '1'
-    );
+--    l4_inst : fc_layer
+--    generic map (
+--        NO_INPUTS => L4_NO_INPUTS,
+--        NO_OUTPUTS => L4_NO_OUTPUTS,
+--        DATA_INTEGER_WIDTH => L4_DATA_INTEGER_WIDTH,
+--        DATA_FRACTION_WIDTH => L4_DATA_FRACTION_WIDTH,
+--        COEF_INTEGER_WIDTH => L4_COEF_INTEGER_WIDTH,
+--        COEF_FRACTION_WIDTH => L4_COEF_FRACTION_WIDTH,
+--        RESULT_INTEGER_WIDTH => L4_RESULT_INTEGER_WIDTH,
+--        RESULT_FRACTION_WIDTH => L4_RESULT_FRACTION_WIDTH
+--    )
+--    port map (
+--        din => res_from_3_pos,
+--        w => w4,
+--        dout => res_from_4,
+--        clk => CLK,
+--        rst => RST,
+--        ce => '1'
+--    );
 
 
     -- SHIFT REG for VALID signal spreading through the FC layer (extended adder trees)
-    shreg : process (CLK) is
-    begin
-        if (rising_edge(CLK)) then
-            shreg_fc_valid(shreg_fc_valid'HIGH downto 1) <= shreg_fc_valid(shreg_fc_valid'HIGH - 1 downto 0);
-            shreg_fc_valid(0) <= data_v_to_4;
-        end if;
-    end process shreg;
+--    shreg : process (CLK) is
+--    begin
+--        if (rising_edge(CLK)) then
+--            shreg_fc_valid(shreg_fc_valid'HIGH downto 1) <= shreg_fc_valid(shreg_fc_valid'HIGH - 1 downto 0);
+--            shreg_fc_valid(0) <= data_v_to_4;
+--        end if;
+--    end process shreg;
 
-    data_v_to_out <= shreg_fc_valid(shreg_fc_valid'HIGH);
+--    data_v_to_out <= shreg_fc_valid(shreg_fc_valid'HIGH);
 
-    -- ReLU after FC layer is not used now because of simpler testing/validation
-    res_from_4_pos <= res_from_4;
+--    -- ReLU after FC layer is not used now because of simpler testing/validation
+--    res_from_4_pos <= res_from_4;
 
     --------------------------------------
     --      FSM - CONTROL PROCESSING    --
@@ -319,7 +322,10 @@ begin
         end case;
     end process next_state_output;
 
-    DOUT <= res_from_4_pos;
-    DOUT_VLD <= data_v_to_out;
+    --DOUT <= res_from_4_pos;
+    --DOUT <= res_from_2;
+    DOUT <= res_from_1;
+    DOUT_VLD <= data_v_to_2;
+    --DOUT_VLD <= data_v_to_out;
 
 end RTL;

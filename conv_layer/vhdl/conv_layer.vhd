@@ -7,19 +7,19 @@ library WORK;
 
 entity conv_layer is
 	Generic (
-		NO_INPUT_MAPS : natural := 4;
-		NO_OUTPUT_MAPS : natural := 1;
-		INPUT_ROW_SIZE : natural := 9;
-		KERNEL_SIZE : natural := 3;
+		NO_INPUT_MAPS : natural;
+		NO_OUTPUT_MAPS : natural;
+		INPUT_ROW_SIZE : natural;
+		KERNEL_SIZE : natural;
         -- sign bit is included
-		DATA_INTEGER_WIDTH : natural := 8;
-		DATA_FRACTION_WIDTH : natural := 0;
+		DATA_INTEGER_WIDTH : natural;
+		DATA_FRACTION_WIDTH : natural;
 		-- sign bit is included
-        COEF_INTEGER_WIDTH : natural := 8;
-		COEF_FRACTION_WIDTH : natural := 0;
+        COEF_INTEGER_WIDTH : natural;
+		COEF_FRACTION_WIDTH : natural;
 		-- sign bit is included
-        RESULT_INTEGER_WIDTH : natural := 8;
-		RESULT_FRACTION_WIDTH : natural := 0
+        RESULT_INTEGER_WIDTH : natural;
+		RESULT_FRACTION_WIDTH : natural
 	);
 
 	Port (

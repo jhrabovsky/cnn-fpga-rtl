@@ -80,7 +80,7 @@ begin
                                 write(outputLine, string'(" "));
                             end loop;
 
-                            write(outputLine, std_logic'image(dout_v));
+                            write(outputLine, dout_v);
                             writeLine(outputFile, outputLine);
                             --count := count + 1;
                             --assert count < NO_OUTPUTS report "End of Simulation" severity failure;

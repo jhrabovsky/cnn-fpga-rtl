@@ -94,7 +94,7 @@ architecture Behavioral of fc_layer_tb is
 
 begin
 
-    k <= Init_Kernel("fc_kernels.mif");
+    k <= Init_Kernel("../misc/fc_kernels.mif");
     gen_kernel_map : for I in 0 to NO_OUTPUTS - 1 generate
         w((I+1) * NO_INPUTS * COEF_WIDTH - 1 downto I * NO_INPUTS * COEF_WIDTH) <= k(I);
     end generate gen_kernel_map;

@@ -208,6 +208,7 @@ begin
         end case;
     end process control_logic;
 
+    -- Enable timers through their control signals only if the input RUN signal is active, otherwise the whole system is waiting without any activity/action
     pixel_counter_ce <= run;
     pixel_counter_set <= pixel_counter_set_tmp and run;
     pixel_counter_clear <= pixel_counter_clear_tmp and run;

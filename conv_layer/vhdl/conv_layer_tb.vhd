@@ -71,22 +71,72 @@ architecture Behavioral of conv_layer_tb is
         end log2c;
 
 
-    constant NO_INPUT_MAPS : natural := 1;
-    constant NO_OUTPUT_MAPS : natural := 16;
-    constant KERNEL_SIZE : natural := 3;
+    -- TEST1
+--    constant NO_INPUT_MAPS : natural := 1;
+--    constant NO_OUTPUT_MAPS : natural := 16;
+--    constant KERNEL_SIZE : natural := 3;
+--    constant INPUT_ROW_LEN : natural := 9;
 
-    constant DIN_I_WIDTH : natural := 1;
-    constant DIN_F_WIDTH : natural := 8;
+--    constant DIN_I_WIDTH : natural := 1;
+--    constant DIN_F_WIDTH : natural := 8;
+--    constant DIN_WIDTH : natural := DIN_I_WIDTH + DIN_F_WIDTH;
+
+--    constant COEF_I_WIDTH : natural := 1;
+--    constant COEF_F_WIDTH : natural := 4;
+--    constant COEF_WIDTH : natural := COEF_I_WIDTH + COEF_F_WIDTH;
+
+--    constant DOUT_I_WIDTH : natural := 3;
+--    constant DOUT_F_WIDTH : natural := 7;
+--    constant DOUT_WIDTH : natural := DOUT_I_WIDTH + DOUT_F_WIDTH;
+
+--    constant image_filename : string := "/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/images.mif";
+--    constant kernel_filename : string := "/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/kernels.mif";
+--    constant output_filename : string := "/home/hrabovsky/matlab_workspace/cnn/l1_sim_vivado.txt";
+
+
+    -- TEST2
+    --constant NO_INPUT_MAPS : natural := 16;
+    --constant NO_OUTPUT_MAPS : natural := 16;
+    --constant KERNEL_SIZE : natural := 3;
+    --constant INPUT_ROW_LEN : natural := 7;
+
+    --constant DIN_I_WIDTH : natural := 3;
+    --constant DIN_F_WIDTH : natural := 7;
+    --constant DIN_WIDTH : natural := DIN_I_WIDTH + DIN_F_WIDTH;
+
+    --constant COEF_I_WIDTH : natural := 1;
+    --constant COEF_F_WIDTH : natural := 4;
+    --constant COEF_WIDTH : natural := COEF_I_WIDTH + COEF_F_WIDTH;
+
+    --constant DOUT_I_WIDTH : natural := 4;
+    --constant DOUT_F_WIDTH : natural := 6;
+    --constant DOUT_WIDTH : natural := DOUT_I_WIDTH + DOUT_F_WIDTH;
+
+    --constant image_filename : string := "/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/images_2.mif";
+    --constant kernel_filename : string := "/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/kernels_2.mif";
+    --constant output_filename : string := "/home/hrabovsky/matlab_workspace/cnn/l2_sim_vivado.txt";
+
+    -- TEST3
+    constant NO_INPUT_MAPS : natural := 16;
+    constant NO_OUTPUT_MAPS : natural := 16;
+    constant KERNEL_SIZE : natural := 5;
+
+    constant INPUT_ROW_LEN : natural := 5;
+    constant DIN_I_WIDTH : natural := 4;
+    constant DIN_F_WIDTH : natural := 6;
     constant DIN_WIDTH : natural := DIN_I_WIDTH + DIN_F_WIDTH;
 
     constant COEF_I_WIDTH : natural := 1;
     constant COEF_F_WIDTH : natural := 4;
     constant COEF_WIDTH : natural := COEF_I_WIDTH + COEF_F_WIDTH;
 
-    constant DOUT_I_WIDTH : natural := 3;
-    constant DOUT_F_WIDTH : natural := 7;
+    constant DOUT_I_WIDTH : natural := 6;
+    constant DOUT_F_WIDTH : natural := 4;
     constant DOUT_WIDTH : natural := DOUT_I_WIDTH + DOUT_F_WIDTH;
 
+    constant image_filename : string := "/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/images_3.mif";
+    constant kernel_filename : string := "/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/kernels_3.mif";
+    constant output_filename : string := "/home/hrabovsky/matlab_workspace/cnn/l3_sim_vivado.txt";
 
     type KERNEL_MAP_T is array(0 to NO_INPUT_MAPS * NO_OUTPUT_MAPS - 1) of std_logic_vector((KERNEL_SIZE**2) * COEF_WIDTH - 1 downto 0);
 
@@ -110,12 +160,11 @@ architecture Behavioral of conv_layer_tb is
 
 
     constant NO_INPUT_IMAGES : natural := 100;
-    constant IMAGE_WIDTH : natural := 9;
-    constant OUTPUT_MAP_WIDTH : natural := IMAGE_WIDTH - KERNEL_SIZE + 1;
-    constant NO_INPUTS : natural := NO_INPUT_IMAGES * (IMAGE_WIDTH ** 2);
+    constant OUTPUT_MAP_WIDTH : natural := INPUT_ROW_LEN - KERNEL_SIZE + 1;
+    constant NO_INPUTS : natural := NO_INPUT_IMAGES * (INPUT_ROW_LEN ** 2);
     constant NO_OUTPUTS : natural := NO_INPUT_IMAGES * OUTPUT_MAP_WIDTH;
     constant ROM_ADDR_LEN : natural := log2c(NO_INPUTS);
-    constant ROM_DATA_LEN : natural := DIN_WIDTH;
+    constant ROM_DATA_LEN : natural := NO_INPUT_MAPS * DIN_WIDTH;
 
     signal mem_ce : std_logic;
     signal mem_data : std_logic_vector(ROM_DATA_LEN - 1 downto 0);
@@ -144,7 +193,7 @@ begin
         generic map (
             NO_INPUT_MAPS => NO_INPUT_MAPS,
             NO_OUTPUT_MAPS => NO_OUTPUT_MAPS,
-            INPUT_ROW_SIZE => DIN_WIDTH,
+            INPUT_ROW_SIZE => INPUT_ROW_LEN,
             KERNEL_SIZE => KERNEL_SIZE,
             DATA_INTEGER_WIDTH => DIN_I_WIDTH,
             DATA_FRACTION_WIDTH => DIN_F_WIDTH,
@@ -175,14 +224,15 @@ begin
 
     rst <= '1', '0' after 2*T;
 
-    k <= Init_Kernel("/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/kernels.mif");
+
+    k <= Init_Kernel(kernel_filename);
     gen_kernel_map : for I in 0 to NO_INPUT_MAPS * NO_OUTPUT_MAPS - 1 generate
         w((I+1) * (KERNEL_SIZE**2) * COEF_WIDTH - 1 downto I * (KERNEL_SIZE**2) * COEF_WIDTH) <= k(I);
     end generate gen_kernel_map;
 
     image_mem_reader : mem_reader
         generic map (
-            FILENAME => "/home/hrabovsky/vivado_workspace/cnn/conv_layer/misc/images.mif",
+            FILENAME => image_filename,
             DATA_LEN => ROM_DATA_LEN,
             ADDR_LEN => ROM_ADDR_LEN,
             NO_ITEMS => NO_INPUTS
@@ -237,7 +287,7 @@ begin
 
     -- Zapis vystupnych dat do suboru
     wr_dout_file : process is
-    file outputFile : text open write_mode is "/home/hrabovsky/matlab_workspace/cnn/sim_conv_layer_dout.txt";
+    file outputFile : text open write_mode is output_filename;
     variable outputLine : line;
     variable count : natural := 0;
     begin

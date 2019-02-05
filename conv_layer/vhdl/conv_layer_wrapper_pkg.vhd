@@ -34,6 +34,17 @@ package conv_layer_wrapper_pkg is
         );
     end component;
 
+    component relu is
+        Generic (
+            WIDTH: natural
+        );
+    
+        Port (
+            din: in std_logic_vector(WIDTH - 1 downto 0);
+            dout: out std_logic_vector(WIDTH - 1 downto 0)
+        );
+    end component;
+
     -------------------------------
     --      CONSTANTS - CONV 1   --
     -------------------------------

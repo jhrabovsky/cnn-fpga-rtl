@@ -22,6 +22,8 @@ architecture Structural of conv_layer_wrapper_1 is
     signal w : std_logic_vector(L1_NO_INPUT_MAPS * L1_NO_OUTPUT_MAPS * (L1_KERNEL_SIZE**2) * L1_COEF_WIDTH - 1 downto 0);
     signal k : L1_KERNEL_MAP_T;
 
+    signal dout_conv : std_logic_vector(dout'range);
+    
 begin
 
     k <= Init_L1_Kernel(kernels_filename);
@@ -45,7 +47,7 @@ begin
         port map (
             din => din,
             w => w,
-            dout => dout,
+            dout => dout_conv,
             clk => clk,
             rst => rst,
             coef_load => '1',
@@ -53,4 +55,15 @@ begin
             valid_out => valid_out
         );
 
+    activation_function_1: for I in 0 to L1_NO_OUTPUT_MAPS - 1 generate
+        relu_inst : relu
+            generic map (
+                WIDTH => L1_RESULT_WIDTH
+            )
+            port map (
+                din => dout_conv((I+1) * L1_RESULT_WIDTH - 1 downto I * L1_RESULT_WIDTH),
+                dout => dout((I+1) * L1_RESULT_WIDTH - 1 downto I * L1_RESULT_WIDTH)
+            );
+    end generate activation_function_1;
+    
 end Structural;

@@ -2,18 +2,24 @@ library IEEE;
 	use IEEE.STD_LOGIC_1164.ALL;
 	use IEEE.NUMERIC_STD.ALL;
 
+library WORK;
+    use WORK.CONV_LAYER_PKG.ALL;
+
 entity conv_layer is
 	Generic (
-		NO_INPUT_MAPS : natural := 1;
-		NO_OUTPUT_MAPS : natural := 16;		
-		INPUT_ROW_SIZE : natural := 9;
-		KERNEL_SIZE : natural := 3;
-		DATA_INTEGER_WIDTH : natural := 8; -- zahrna aj znamienkovy bit
-		DATA_FRACTION_WIDTH : natural := 0;
-		COEF_INTEGER_WIDTH : natural := 8; -- zahrna aj znamienkovy bit
-		COEF_FRACTION_WIDTH : natural := 0;
-		RESULT_INTEGER_WIDTH : natural := 8; -- zahrna aj znamienkovy bit
-		RESULT_FRACTION_WIDTH : natural := 0
+		NO_INPUT_MAPS : natural;
+		NO_OUTPUT_MAPS : natural;
+		INPUT_ROW_SIZE : natural;
+		KERNEL_SIZE : natural;
+        -- sign bit is included
+		DATA_INTEGER_WIDTH : natural;
+		DATA_FRACTION_WIDTH : natural;
+		-- sign bit is included
+        COEF_INTEGER_WIDTH : natural;
+		COEF_FRACTION_WIDTH : natural;
+		-- sign bit is included
+        RESULT_INTEGER_WIDTH : natural;
+		RESULT_FRACTION_WIDTH : natural
 	);
 
 	Port (
@@ -30,76 +36,6 @@ end conv_layer;
 
 architecture rtl of conv_layer is
 
----------------------------------------
---				COMPONENTS  		 --
----------------------------------------
-
-component conv_2d is
-    Generic(
-        INPUT_ROW_LENGTH : integer; -- row length in image
-        KERNEL_SIZE : integer;  -- kernel size
-        DATA_WIDTH : natural;
-        DATA_FRAC_LEN : natural;
-        COEF_WIDTH : natural;
-        COEF_FRAC_LEN : natural;
-        RESULT_WIDTH : natural;
-        RESULT_FRAC_LEN : natural
-    );
-    
-    Port (
-        din : in std_logic_vector(DATA_WIDTH - 1 downto 0);
-        w : in std_logic_vector((KERNEL_SIZE**2) * COEF_WIDTH - 1 downto 0);
-        dout : out std_logic_vector(RESULT_WIDTH - 1 downto 0);
-        clk : in std_logic;
-        ce : in std_logic;
-        coef_load : in std_logic;
-        rst : in std_logic     
-    );
-end component;
-
-component adder_tree is
-	Generic (
-		NO_INPUTS : natural;
-		DATA_WIDTH : natural
-	);
-
-	Port (
-		din : in std_logic_vector(NO_INPUTS * DATA_WIDTH - 1 downto 0);
-        dout : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        clk : in std_logic;
-        ce : in std_logic;
-        rst : in std_logic
-	); 
-end component;
-
-component fsm is
-    Generic (
-        INPUT_ROW_LENGTH : integer;
-        KERNEL_SIZE : integer
-    );
-    
-    Port ( 
-        clk : in std_logic;
-		rst : in std_logic;
-		run : in std_logic;
-		valid : out std_logic
-	);
-end component;
-
-function log2c (N : integer) return integer is
-    variable m, p : integer;
-    begin
-        m := 0;
-        p := 1;
-        
-        while p < N loop
-            m := m + 1;
-            p := p * 2;
-        end loop;
-        
-        return m;
-    end log2c;
-    
 ---------------------------------------
 --				CONSTANTS			 --
 ---------------------------------------
@@ -122,9 +58,9 @@ begin
     ---------------------------------------
     --		DATA PATH - COMPUTATION		 --
     ---------------------------------------
-    
+
 	output_map_gen : for J in 0 to NO_OUTPUT_MAPS - 1 generate
-		
+
 		input_map_gen : for I in 0 to NO_INPUT_MAPS - 1 generate
 			conv2d_inst : conv_2d
 				generic map (
@@ -166,7 +102,7 @@ begin
     -----------------------------------------------
     -- CONTROL PATH - STATUS AND CONTROL SIGNALS --
     -----------------------------------------------
-    
+
     fsm_inst : fsm
         generic map (
             INPUT_ROW_LENGTH => INPUT_ROW_SIZE,
@@ -181,25 +117,25 @@ begin
 
     --------------------------------------------------------
     -- DELAY OF RESULTS CAUSED BY GOING THROUGH ADDER TREE --
-    --------------------------------------------------------   
-    
-    adder_tree_delay_gen : if (ADDER_TREE_DELAY > 1) generate    
+    --------------------------------------------------------
+
+    adder_tree_delay_gen : if (ADDER_TREE_DELAY > 1) generate
         result_valid_delay: process (clk, rst, valid_in) is
         begin
             if (rising_edge(clk)) then
                 if (rst = '1') then
                     adder_trees_delay <= (others => '0');
                 else
-                    adder_trees_delay <= adder_trees_delay(ADDER_TREE_DELAY - 2 downto 1) & valid_from_fsm;
+                    adder_trees_delay <= adder_trees_delay(ADDER_TREE_DELAY - 2 downto 0) & valid_from_fsm;
                 end if;
             end if;
         end process result_valid_delay;
-    
+
         valid_out <= adder_trees_delay(ADDER_TREE_DELAY - 1);
     end generate;
-    
+
     without_adder_tree : if (ADDER_TREE_DELAY <= 1) generate
         valid_out <= valid_from_fsm;
     end generate;
-    
+
 end rtl;
